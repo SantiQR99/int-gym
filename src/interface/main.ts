@@ -11,6 +11,7 @@ const inpDocument = document.getElementById(
 ) as HTMLInputElement | null;
 const selPlan = document.getElementById("sel-plan") as HTMLSelectElement | null;
 const inpFee = document.getElementById("inp-fee") as HTMLInputElement | null;
+const inpDiscount = document.getElementById("inp-discount") as HTMLInputElement | null;
 const btnAdd = document.getElementById("btn-add") as HTMLButtonElement | null;
 const errorContainer = document.getElementById(
   "error-container",
@@ -33,12 +34,16 @@ const inpTotalMembers = document.getElementById(
 const inpTotalFees = document.getElementById(
   "inp-total-fees",
 ) as HTMLInputElement | null;
+const inpTotalFeesDiscount = document.getElementById(
+  "inp-total-fees-discount",
+) as HTMLInputElement | null;
 
 function clearInputs(): void {
-  if (inpName && inpDocument && inpFee) {
+  if (inpName && inpDocument && inpFee && inpDiscount) {
     inpName.value = "";
     inpDocument.value = "";
     inpFee.value = "";
+    inpDiscount.value = "";
   }
 }
 
@@ -63,17 +68,27 @@ function createText(text: string): HTMLParagraphElement {
 function createFeeEditor(member: Member): HTMLDivElement {
   const group = document.createElement("div");
   group.className = "input-group input-group-sm";
+
   const input = document.createElement("input");
   input.className = "form-control";
   input.type = "number";
   input.value = String(member.monthlyFee);
   input.setAttribute("aria-label", `Nueva cuota de ${member.name}`);
+
   const button = document.createElement("button");
   button.type = "button";
   button.className = "btn btn-outline-secondary";
   button.textContent = "Guardar cuota";
+
   button.addEventListener("click", () => {
     // TODO: editar la cuota del socio con el valor de input
+    const newFee = input.valueAsNumber;
+    try{
+    member.monthlyFee = newFee;
+    updateList();
+    } catch (error){
+      input.classList.add("is-invalid");
+    }
   });
   group.append(input, button);
   return group;
@@ -88,16 +103,21 @@ function createCard(member: Member): HTMLDivElement {
   body.className = "card-body";
   const title = document.createElement("h5");
   title.className = "card-title";
+  let badge = document.createElement("span");
+  badge.className = "badge text-bg-secondary";
+  badge.innerText = `${PLAN_LABELS[member.plan]}`;
   title.textContent = member.name;
   const lines = [
     `Documento: ${member.documentId}`,
-    `Plan: ${PLAN_LABELS[member.plan]}`,
     `Cuota mensual: $${member.monthlyFee}`,
   ];
   if (member.discount > 0) {
     lines.push(`Descuento: ${member.discount}%`);
   }
-  body.append(title, ...lines.map(createText));
+  const headerRow = document.createElement("div");
+  headerRow.className = "d-flex justify-content-between align-items-center mb-2"
+  headerRow.append(title, badge);
+  body.append(headerRow, ...lines.map(createText));
   const footer = document.createElement("div");
   footer.className = "card-footer bg-transparent";
   footer.append(createFeeEditor(member));
@@ -116,9 +136,10 @@ function updateList(): void {
 }
 
 function updateTotals(): void {
-  if (inpTotalMembers && inpTotalFees) {
+  if (inpTotalMembers && inpTotalFees && inpTotalFeesDiscount) {
     inpTotalMembers.value = String(memberList.getItems().length);
     inpTotalFees.value = String(memberList.totalFees());
+    inpTotalFeesDiscount.value = String(memberList.totalDiscounted());
   }
 }
 
@@ -134,7 +155,7 @@ loadMockData();
 updateList();
 updateTotals();
 
-if (btnAdd && inpName && inpDocument && selPlan && inpFee) {
+if (btnAdd && inpName && inpDocument && selPlan && inpFee && inpDiscount) {
   btnAdd.addEventListener("click", () => {
     try {
       const member = new Member({
@@ -142,7 +163,7 @@ if (btnAdd && inpName && inpDocument && selPlan && inpFee) {
         documentId: inpDocument.value,
         plan: selPlan.value as Plan,
         monthlyFee: Number(inpFee.value),
-        discount: Number(),
+        discount: Number(inpDiscount.value),
       });
       memberList.add(member);
       hideError();
