@@ -5,6 +5,7 @@ import { MemberList } from "../MemberList.ts";
 describe("MemberList", () => {
   let list: MemberList;
   let member: Member;
+  let member2: Member;
 
   beforeEach(() => {
     list = new MemberList();
@@ -13,6 +14,14 @@ describe("MemberList", () => {
       documentId: "12345678",
       plan: "full",
       monthlyFee: 1500,
+      discount: 50,
+    });
+    member2 = new Member({
+      name: "member2",
+      documentId: "98765432",
+      plan: "full",
+      monthlyFee: 1000,
+      discount: 10,
     });
   });
 
@@ -32,6 +41,24 @@ describe("MemberList", () => {
 
   test("total fees", () => {
     list.add(member);
-    expect(list.totalFees()).toBe(1500);
+    list.add(member2);
+    expect(list.totalFees()).toBe(2500);
+  });
+
+  test("total discount", () => {
+    list.add(member);
+    list.add(member2);
+    expect(list.totalDiscounted()).toBe(1650);
+  });
+
+  test("update member fee", () => {
+    list.add(member);
+    list.updateFee(member.documentId, 2000);
+    expect(member.monthlyFee).toEqual(2000);
+  });
+
+  test("dont update id that isnt on the list", () => {
+    list.add(member);
+    expect(() => list.updateFee("56489531", 4854)).toThrow();
   });
 });

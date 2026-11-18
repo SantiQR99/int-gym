@@ -14,7 +14,17 @@ export class MemberList {
   }
 
   updateFee(_documentId: string, _fee: number): void {
-    // TODO: cambiar la cuota del socio con ese documento
+    const itemPos: number = this.#items.findIndex((miembro) =>miembro.documentId==_documentId);
+    if(itemPos==-1){
+      throw new Error("No existe miembro con ese id")
+    }
+    this.#items[itemPos].monthlyFee = _fee;
+
+    /*const item = this.#items.find((member) => member.documentId == _documentId);
+    if(!item){
+      throw new Error("No existe miembro con ese id")
+    }
+    item.documentId = _documentId;*/
   }
 
   getItems(): readonly Member[] {
@@ -26,7 +36,6 @@ export class MemberList {
   }
 
   totalDiscounted(): number {
-    // TODO: sumar las cuotas de los socios con el descuento aplicado
-    return 0;
+    return this.#items.reduce((total, member) => total + (100-member.discount)*member.monthlyFee/100, 0);
   }
 }

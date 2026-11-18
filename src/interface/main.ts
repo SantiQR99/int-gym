@@ -142,6 +142,7 @@ if (btnAdd && inpName && inpDocument && selPlan && inpFee) {
         documentId: inpDocument.value,
         plan: selPlan.value as Plan,
         monthlyFee: Number(inpFee.value),
+        discount: Number(),
       });
       memberList.add(member);
       hideError();
